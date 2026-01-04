@@ -1,0 +1,189 @@
+using System;
+
+class TicTacToe
+{
+    static char[] board = { '1', '2', '3', '4', '5', '6', '7', '8', '9' };
+    static char playerSymbol = 'X';
+    static char computerSymbol = 'O';
+    static bool playerTurn = true;
+
+    static void Main()
+    {
+        Console.WriteLine("Добро пожаловать в Крестики-Нолики!");
+        Console.WriteLine("Вы играете за X, компьютер за O\n");
+
+        bool gameEnded = false;
+
+        while (!gameEnded)
+        {
+            DrawBoard();
+
+            if (playerTurn)
+            {
+                PlayerMove();
+            }
+            else
+            {
+                ComputerMove();
+            }
+
+            gameEnded = CheckGameEnd();
+            playerTurn = !playerTurn;
+        }
+
+        DrawBoard();
+        Console.WriteLine("Нажмите любую клавишу для выхода...");
+        Console.ReadKey();
+    }
+
+    static void DrawBoard()
+    {
+        Console.Clear();
+        Console.WriteLine(" Крестики-Нолики\n");
+        Console.WriteLine($" {board[0]} | {board[1]} | {board[2]} ");
+        Console.WriteLine("---+---+---");
+        Console.WriteLine($" {board[3]} | {board[4]} | {board[5]} ");
+        Console.WriteLine("---+---+---");
+        Console.WriteLine($" {board[6]} | {board[7]} | {board[8]} ");
+        Console.WriteLine();
+    }
+
+    static void PlayerMove()
+    {
+        bool validMove = false;
+
+        while (!validMove)
+        {
+            Console.Write($"Введите номер клетки (1-9) для {playerSymbol}: ");
+
+            if (int.TryParse(Console.ReadLine(), out int position) && position >= 1 && position <= 9)
+            {
+                if (board[position - 1] != playerSymbol && board[position - 1] != computerSymbol)
+                {
+                    board[position - 1] = playerSymbol;
+                    validMove = true;
+                }
+                else
+                {
+                    Console.WriteLine("Эта клетка уже занята! Попробуйте другую.");
+                }
+            }
+            else
+            {
+                Console.WriteLine("Неверный ввод! Введите число от 1 до 9.");
+            }
+        }
+    }
+
+    static void ComputerMove()
+    {
+        Console.WriteLine("Компьютер думает...");
+        System.Threading.Thread.Sleep(800);
+
+        // Сначала проверяем, может ли компьютер выиграть
+        int move = FindWinningMove(computerSymbol);
+
+        // Если нет, блокируем ход игрока, если тот может выиграть
+        if (move == -1)
+            move = FindWinningMove(playerSymbol);
+
+        // Если нет выигрышных ходов, выбираем центр или углы
+        if (move == -1)
+        {
+            if (board[4] == '5') // Центр
+                move = 4;
+            else
+            {
+                // Пробуем углы, потом остальные
+                int[] preferredMoves = { 0, 2, 6, 8, 1, 3, 5, 7 };
+                foreach (int pos in preferredMoves)
+                {
+                    if (board[pos] != playerSymbol && board[pos] != computerSymbol)
+                    {
+                        move = pos;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (move != -1)
+        {
+            board[move] = computerSymbol;
+            Console.WriteLine($"Компьютер поставил {computerSymbol} в клетку {move + 1}");
+        }
+    }
+
+    static int FindWinningMove(char symbol)
+    {
+  
+        int[,] winCombinations = {
+            {0, 1, 2}, {3, 4, 5}, {6, 7, 8}, 
+            {0, 3, 6}, {1, 4, 7}, {2, 5, 8}, 
+            {0, 4, 8}, {2, 4, 6}            
+        };
+
+        for (int i = 0; i < 8; i++)
+        {
+            int a = winCombinations[i, 0];
+            int b = winCombinations[i, 1];
+            int c = winCombinations[i, 2];
+
+         
+            if (board[a] == board[b] && board[a] == symbol && board[c] != playerSymbol && board[c] != computerSymbol)
+                return c;
+            if (board[a] == board[c] && board[a] == symbol && board[b] != playerSymbol && board[b] != computerSymbol)
+                return b;
+            if (board[b] == board[c] && board[b] == symbol && board[a] != playerSymbol && board[a] != computerSymbol)
+                return a;
+        }
+
+        return -1;
+    }
+
+    static bool CheckGameEnd()
+    {
+
+        int[,] winCombinations = {
+            {0, 1, 2}, {3, 4, 5}, {6, 7, 8},
+            {0, 3, 6}, {1, 4, 7}, {2, 5, 8},
+            {0, 4, 8}, {2, 4, 6}
+        };
+
+        for (int i = 0; i < 8; i++)
+        {
+            if (board[winCombinations[i, 0]] == board[winCombinations[i, 1]] &&
+                board[winCombinations[i, 1]] == board[winCombinations[i, 2]])
+            {
+                char winner = board[winCombinations[i, 0]];
+                if (winner == playerSymbol)
+                {
+                    Console.WriteLine("Поздравляем! Вы выиграли!");
+                    return true;
+                }
+                else if (winner == computerSymbol)
+                {
+                    Console.WriteLine("Компьютер выиграл!");
+                    return true;
+                }
+            }
+        }
+        bool isDraw = true;
+        for (int i = 0; i < 9; i++)
+        {
+            if (board[i] != playerSymbol && board[i] != computerSymbol)
+            {
+                isDraw = false;
+                break;
+            }
+        }
+
+        if (isDraw)
+        {
+            Console.WriteLine("Ничья!");
+            return true;
+        }
+
+        return false;
+    }
+}
